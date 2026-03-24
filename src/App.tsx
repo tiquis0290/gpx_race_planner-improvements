@@ -183,6 +183,10 @@ const App: React.FC = () => {
         <a href="https://martinkobelka.cz" target="_blank" rel="noopener" className="app-footer__link">
           martinkobelka.cz
         </a>
+        <span className="app-footer__sep">·</span>
+        <span className="app-footer__meta">v{__APP_VERSION__}</span>
+        <span className="app-footer__sep">·</span>
+        <span className="app-footer__meta">{new Date(__BUILD_TIME__).toLocaleString()}</span>
       </footer>
     </div>
   );
