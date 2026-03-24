@@ -102,6 +102,7 @@ const en = {
   manualEditingSegment: (n: number) => `Editing segment #${n}`,
   manualSave: 'Save',
   manualCancel: 'Cancel',
+  builtAt: 'Built:',
 } as const;
 
 export default en;

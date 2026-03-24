@@ -102,6 +102,7 @@ const cs = {
   manualEditingSegment: (n: number) => `Editace úseku #${n}`,
   manualSave: 'Uložit',
   manualCancel: 'Zrušit',
+  builtAt: 'Sestaveno:',
 } as const;
 
 export default cs;

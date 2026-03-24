@@ -186,7 +186,7 @@ const App: React.FC = () => {
         <span className="app-footer__sep">·</span>
         <span className="app-footer__meta">v{__APP_VERSION__}</span>
         <span className="app-footer__sep">·</span>
-        <span className="app-footer__meta">{new Date(__BUILD_TIME__).toLocaleString()}</span>
+        <span className="app-footer__meta">{t.builtAt} {new Date(__BUILD_TIME__).toLocaleString()}</span>
       </footer>
     </div>
   );

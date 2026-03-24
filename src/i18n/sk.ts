@@ -102,6 +102,7 @@ const sk = {
   manualEditingSegment: (n: number) => `Editácia úseku #${n}`,
   manualSave: 'Uložiť',
   manualCancel: 'Zrušiť',
+  builtAt: 'Zostavené:',
 } as const;
 
 export default sk;
