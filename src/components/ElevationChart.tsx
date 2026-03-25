@@ -1,8 +1,10 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import type { GpxPoint, Segment } from '../types';
 import { useT } from '../i18n/useT';
-import { useHoveredSegment } from '../contexts/HoveredSegment';
+import { useElevationGeometry } from '../hooks/useElevationGeometry';
+import { useElevationCursor } from '../hooks/useElevationCursor';
+import ElevationInfoBar from './ElevationInfoBar';
 
 interface Props {
   points: GpxPoint[];
@@ -17,11 +19,15 @@ const SEGMENT_COLORS: Record<string, string> = {
 
 const ElevationChart: React.FC<Props> = ({ points, segments }) => {
   const t = useT();
-  const { hoveredId, setHoveredId } = useHoveredSegment();
   const [zoom, setZoom] = useState(1);
-  const [cursorX, setCursorX] = useState<number | null>(null);
   const [containerWidth, setContainerWidth] = useState(800);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const geo    = useElevationGeometry(points, zoom, containerWidth);
+  const cursor = useElevationCursor(points, segments, geo.toY, geo.chartW, geo.totalDist);
+
+  const { height, paddingLeft, paddingRight, paddingTop, chartW, chartH, minZoom, totalDist, toX, toY, pathData, xTicks, yTicks } = geo;
+  const { hoveredId, setHoveredId, cursorX, setCursorX, cursorDist, cursorElev, cursorMarkerY, cursorGrade, segment, handleMouseMove } = cursor;
 
   useEffect(() => {
     const el = containerRef.current;
@@ -55,149 +61,16 @@ const ElevationChart: React.FC<Props> = ({ points, segments }) => {
     const seg = segments.find((s) => s.id === hoveredId);
     if (!seg) return;
 
-    const totalDist = points.length > 0 ? (points[points.length - 1].distance || 1) : 1;
-    const totalKm   = totalDist / 1000;
-    const BASE_PX_PER_KM = 120;
-    const cw = Math.max(el.clientWidth, totalKm * BASE_PX_PER_KM * zoom);
-
-    const segCenterX = ((seg.startDistance + seg.endDistance) / 2 / totalDist) * cw;
+    const segCenterX = ((seg.startDistance + seg.endDistance) / 2 / totalDist) * chartW;
     const targetScrollLeft = Math.max(0, segCenterX - el.clientWidth / 2);
-
     el.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-  }, [hoveredId, segments, points, zoom]);
-
-  const height        = 235;
-  const paddingLeft   = 55;
-  const paddingRight  = 15;
-  const paddingTop    = 10;
-  const paddingBottom = 35;
-
-  const BASE_PX_PER_KM = 120;
-  const totalDist  = points.length > 0 ? (points[points.length - 1].distance || 1) : 1;
-  const totalKm    = totalDist / 1000;
-  const minZoom    = totalKm > 0 ? (containerWidth - paddingRight) / (totalKm * BASE_PX_PER_KM) : 1;
-  const chartW     = Math.max(containerWidth - paddingRight, totalKm * BASE_PX_PER_KM * zoom);
-  const chartH     = height - paddingTop - paddingBottom;
-
-  const { minElev, maxElev } = useMemo(() => {
-    if (points.length === 0) return { minElev: 0, maxElev: 100 };
-    let min = Infinity, max = -Infinity;
-    for (const p of points) {
-      if (p.elevation < min) min = p.elevation;
-      if (p.elevation > max) max = p.elevation;
-    }
-    const pad = (max - min) * 0.1 || 10;
-    return { minElev: min - pad, maxElev: max + pad };
-  }, [points]);
-
-  const toX = (dist: number) => (dist / totalDist) * chartW;
-  const toY = (elev: number) => paddingTop + chartH - ((elev - minElev) / (maxElev - minElev)) * chartH;
-
-  const pathData = useMemo(() => {
-    if (points.length === 0) return '';
-    const line = points.map((p) => `${toX(p.distance)},${toY(p.elevation)}`).join(' L ');
-    const bottom = paddingTop + chartH;
-    return `M ${toX(0)},${bottom} L ${line} L ${toX(totalDist)},${bottom} Z`;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, minElev, maxElev, totalDist, chartW]);
-
-  const pxPerKm = BASE_PX_PER_KM * zoom;
-  const use100m = pxPerKm >= 300;
-
-  const xTicks = useMemo(() => {
-    const ticks: { x: number; label: string; major: boolean }[] = [];
-    if (use100m) {
-      const total100m = Math.floor(totalDist / 100);
-      for (let i = 0; i <= total100m; i++) {
-        const distM = i * 100;
-        const major = i % 10 === 0;
-        const label = major ? `${distM / 1000} km` : '';
-        ticks.push({ x: toX(distM), label, major });
-      }
-    } else {
-      const totalKmFloor = Math.floor(totalDist / 1000);
-      for (let km = 0; km <= totalKmFloor; km++) {
-        ticks.push({ x: toX(km * 1000), label: `${km} km`, major: true });
-      }
-    }
-    return ticks;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalDist, chartW, use100m]);
-
-  const yTicks = useMemo(() => {
-    const range = maxElev - minElev;
-    const step = Math.ceil(range / 5 / 10) * 10 || 10;
-    const ticks = [];
-    const startVal = Math.ceil(minElev / step) * step;
-    for (let v = startVal; v <= maxElev; v += step) ticks.push({ y: toY(v), v: Math.round(v) });
-    return ticks;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minElev, maxElev]);
+  }, [hoveredId, segments, points, zoom, totalDist, chartW]);
 
   const legend = [
     { type: 'uphill',   label: t.chartUphill },
     { type: 'downhill', label: t.chartDownhill },
     { type: 'flat',     label: t.chartFlat },
   ];
-
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const svgX = e.clientX - rect.left;
-    const clampedX = Math.max(0, Math.min(chartW, svgX));
-    setCursorX(clampedX);
-
-    const dist = (clampedX / chartW) * totalDist;
-    const nextHoveredId =
-      segments.find((seg) => dist >= seg.startDistance && dist <= seg.endDistance)?.id ?? null;
-    if (nextHoveredId !== hoveredId) setHoveredId(nextHoveredId);
-  };
-
-  const cursorDist = useMemo(() => {
-    if (cursorX === null) return null;
-    return (cursorX / chartW) * totalDist;
-  }, [cursorX, chartW, totalDist]);
-
-  const cursorElev = useMemo(() => {
-    if (cursorDist === null || points.length === 0) return null;
-    if (cursorDist <= points[0].distance) return points[0].elevation;
-    if (cursorDist >= points[points.length - 1].distance) return points[points.length - 1].elevation;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p1 = points[i], p2 = points[i + 1];
-      if (cursorDist >= p1.distance && cursorDist <= p2.distance) {
-        const span = p2.distance - p1.distance;
-        if (span <= 0) return p1.elevation;
-        const frac = (cursorDist - p1.distance) / span;
-        return p1.elevation + (p2.elevation - p1.elevation) * frac;
-      }
-    }
-    return null;
-  }, [cursorDist, points]);
-
-  const cursorMarkerY = useMemo(() => {
-    if (cursorElev === null) return null;
-    return toY(cursorElev);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursorElev, minElev, maxElev, paddingTop, chartH]);
-
-  const cursorGrade = useMemo(() => {
-    if (cursorDist === null || points.length === 0) return null;
-    if (cursorDist <= points[0].distance) return 0;
-    if (cursorDist >= points[points.length - 1].distance) return 0;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p1 = points[i], p2 = points[i + 1];
-      if (cursorDist >= p1.distance && cursorDist <= p2.distance) {
-        const span = p2.distance - p1.distance;
-        if (span <= 0) return 0;
-        return (p2.elevation - p1.elevation) / span;
-      }
-    }
-    return null;
-  }, [cursorDist, points]);
-
-  const segment = useMemo(() => {
-    if (hoveredId === null) return null;
-    return segments.find((s) => s.id === hoveredId) || null;
-  }, [hoveredId, segments]);
 
   if (points.length === 0) {
     return <div className="chart-empty-text">{t.chartEmpty}</div>;
@@ -341,18 +214,13 @@ const ElevationChart: React.FC<Props> = ({ points, segments }) => {
         </div>
       </div>
 
-      {/* Info lišta */}
-      <div className="elevation-seg-data">
-        {cursorX && (
-          <div className="elevation-seg-data">
-            <span>{t.chartDist}: {cursorDist ? (cursorDist / 1000).toFixed(2) : '-'} km</span> | <span>{t.chartElev}: {cursorElev ? cursorElev.toFixed(0) : '-'} m</span> | <span>{t.chartGrade}: {cursorGrade ? (cursorGrade * 100).toFixed(1) : '-'}%</span>
-          </div>
-        )}
-        {cursorX && <span>|</span>}
-        <div className="elevation-seg-data">
-          <span>{t.chartAvgGrade}: {segment ? segment.avgSlope.toFixed(1) : '-'}%</span> | <span>{t.chartLength}: {segment?.length ? (segment.length / 1000).toFixed(2) : '-'} km</span> | <span>{t.chartGain}: {segment ? segment.elevationGain > 0.5 ? segment.elevationGain.toFixed(0) : -segment.elevationLoss.toFixed(0) : '-'} m</span>
-        </div>
-      </div>
+      <ElevationInfoBar
+        cursorX={cursorX}
+        cursorDist={cursorDist}
+        cursorElev={cursorElev}
+        cursorGrade={cursorGrade}
+        segment={segment}
+      />
     </div>
   );
 };
