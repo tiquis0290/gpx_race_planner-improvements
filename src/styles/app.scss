@@ -256,19 +256,24 @@ body {
 }
 
 .gpx-params {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
 }
 
 .gpx-param {
-  flex: 1 1 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  display: contents;
 
-  &__label { flex: 1; }
+  label {
+    grid-row: 1;
+    align-self: start;
+  }
+
+  > :last-child {
+    grid-row: 2;
+    align-self: end;
+  }
 }
 
 .gpx-loading {
