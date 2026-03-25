@@ -1,17 +1,17 @@
-// Entry point — import order matters: variables must come first.
+// Entry point — @use order matters: variables must be loaded first by each partial.
 
-@import 'variables';
-@import 'base';
-@import 'utilities';
-@import 'primereact';
-@import 'layout';
-@import 'collapsible-card';
-@import 'gpx-uploader';
-@import 'pace-settings';
-@import 'effort-settings';
-@import 'summary-panel';
-@import 'manual-editor';
-@import 'segments-table';
-@import 'route-map';
-@import 'elevation-chart';
-@import 'help';
+@use 'variables';
+@use 'base';
+@use 'utilities';
+@use 'primereact';
+@use 'layout';
+@use 'collapsible-card';
+@use 'gpx-uploader';
+@use 'pace-settings';
+@use 'effort-settings';
+@use 'summary-panel';
+@use 'manual-editor';
+@use 'segments-table';
+@use 'route-map';
+@use 'elevation-chart';
+@use 'help';

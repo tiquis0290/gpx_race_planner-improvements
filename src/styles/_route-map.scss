@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 // Remove card padding so the Leaflet map fills edge-to-edge inside the card
 .route-map-card .p-card-content {
   padding: 0 !important;

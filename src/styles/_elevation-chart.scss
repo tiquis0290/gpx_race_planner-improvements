@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 // Empty state shown when no route is loaded
 .chart-empty {
   display: flex;

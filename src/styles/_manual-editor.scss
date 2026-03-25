@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 // Banner shown while editing an existing segment
 .edit-banner {
   background: $color-primary-light;

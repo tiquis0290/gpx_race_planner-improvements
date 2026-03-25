@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 // Two side-by-side inputs: pace (min/km) and total time (h:mm:ss)
 .pace-inputs {
   display: flex;

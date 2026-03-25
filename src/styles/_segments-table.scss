@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 .elev-unit   { color: $color-text-faint; font-size: 0.8rem; }
 .slope-value { font-weight: 600; }
 

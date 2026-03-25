@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 .summary-panel {
   &__controls {
     display: flex;
