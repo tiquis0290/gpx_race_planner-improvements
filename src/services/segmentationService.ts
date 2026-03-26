@@ -139,7 +139,7 @@ function makeSegment(id: number, raw: RawSegment, points: GpxPoint[], slopeThres
   const elevDelta = endPt.elevation - startPt.elevation;
   const avgSlope = length > 0 ? (elevDelta / length) * 100 : 0;
 
-  const type = avgSlope > slopeThreshold ? 'uphill' : avgSlope < -slopeThreshold ? 'downhill' : 'flat';
+  const type = avgSlope > slopeThreshold/10 ? 'uphill' : avgSlope < -slopeThreshold/10 ? 'downhill' : 'flat';
 
   return {
     id,
