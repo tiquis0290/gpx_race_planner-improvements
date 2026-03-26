@@ -122,6 +122,7 @@ export function buildSegments(
       result.push(rawSegments[i - 1]);
     }
   }
+  result.push(rawSegments[rawSegments.length - 1]);
   rawSegments = result;
 
 
