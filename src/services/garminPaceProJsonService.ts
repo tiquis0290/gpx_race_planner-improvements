@@ -23,7 +23,7 @@ export function generateGarminPaceProJson(
         distanceUnit: null,
         elevationSegmentationTolerance: 50,
         paceFactor: 2,
-        elevationSegmentMinLength: 1700
+        elevationSegmentMinLength: 1
     }
   };
 }
