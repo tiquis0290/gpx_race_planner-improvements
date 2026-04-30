@@ -1,7 +1,7 @@
 # Changed how segments are created and added custom export to garmin pace pro
 **Live demo:** [https://gpx.maslowski.cz](https://gpx.maslowski.cz)
 
-to upload custom pace pro pplan you can use my [firefox extension](https://addons.mozilla.org/en-US/firefox/addon/garminconnect-pacepro-loader/)
+to upload custom pace pro plan you can use my [firefox extension](https://addons.mozilla.org/en-US/firefox/addon/garminconnect-pacepro-loader/)
 
 
 
